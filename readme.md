@@ -6,8 +6,18 @@ This is a Grails plugin that allows you to create Workflows using a simplified D
 workflow(name : 'onlineReporter'){
 	edit{
 		writeArticle(to : 'edit'){
-			run('articleService.save'){id->
-				articleId = id
+               run('rowkService.prepare'){
+                    output {
+                         article_id(to:'articleId')
+                         db_user(to:'loggedinUser')
+                    }
+               }
+			run('articleService.save'){
+                    input {
+                         id(ref:'articleId')
+                         user(ref:'loggedinUser')
+                         override(true)
+                    }
 			}
 		}
 		submitArticle(to : 'review')

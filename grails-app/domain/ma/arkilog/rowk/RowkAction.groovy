@@ -6,6 +6,12 @@ class RowkAction {
 
 	String function
 
+	List parameters
+
+	List results
+
+	static hasMany = [parameters : RowkParameter, results : RowkResult]
+
     static constraints = {
     }
 
