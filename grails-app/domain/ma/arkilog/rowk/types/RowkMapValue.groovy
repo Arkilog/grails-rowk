@@ -6,6 +6,7 @@ class RowkMapValue extends RowkValue{
 
 	List entries
 
+	static mappedBy = [entries:'map']
 	static hasMany = [entries : RowkEntryValue]
 	
 	static transients = ['value']

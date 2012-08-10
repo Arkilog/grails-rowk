@@ -6,6 +6,7 @@ class RowkEntryValue {
 
 	RowkValue key
 	RowkValue value
+	static belongsTo = [map:RowkMapValue]
 
 	static mapping = {
 		key cascade: 'all-delete-orphan'
