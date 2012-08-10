@@ -33,6 +33,8 @@ class WorkflowBuilder extends DelegateSupport {
 		private nonLinked = [:]
 		def srcName
 		def tgtName
+		def clazz
+		def createMissing
 		def add(missing, link){
 			def list = nonLinked[link] ?: []
 			list << missing
@@ -41,10 +43,22 @@ class WorkflowBuilder extends DelegateSupport {
 		def match(target){
 			nonLinked[target."$tgtName"].each{
 				it."$srcName" = target
-				println it
 			}
 		}
-		def matchAll(targets){targets.each{match(it)}}
+		def matchAll(targets){
+			targets.each{
+				match(it)
+			}
+			if (createMissing) {
+				nonLinked.findAll{k,v->
+					v.find{!(it."$srcName")}
+				}.each{k,v->
+					def newObj = createMissing()
+					newObj."$tgtName" = k
+					v*."$srcName" = newObj
+				}
+			}
+		}
 	}
 
 	class DelegateSupport{
@@ -60,7 +74,11 @@ class WorkflowBuilder extends DelegateSupport {
 	class WorkflowDelegate extends DelegateSupport {
 		private RowkWorkflow workflow
 		private nextStateLinker = new Linker(srcName:'nextState',tgtName:'name')
-		private variableLinker = new Linker(srcName:'ref',tgtName:'name')
+		private variableLinker = new Linker(srcName:'ref',tgtName:'name',createMissing:{
+				def var = new RowkVariable()
+				workflow.addToVariables(var)
+				var
+			})
 		
 		WorkflowDelegate(RowkWorkflow workflow) {
 			this.workflow = workflow
@@ -177,17 +195,33 @@ class WorkflowBuilder extends DelegateSupport {
 		}
 		
 		def methodMissing(String name, Object args) {
-			if (args.length==1) {
-				if (name=="input"){
-					godeeper(args[0], new RowkActionInputDelegate(workflowDelegate, state, event, transition, action))
+			if (args[0] instanceof Map){
+				if (args[0].ref) {
+					def param = new RowkParameter()
+					param.name = name
+					action.addToParameters(param)
+					workflowDelegate.variableLinker.add(param, args[0].ref)
+				} else if (args[0].to) {
+					addResult(name,args[0].to)
 				}
-				if (name=="output"){
-					godeeper(args[0], new RowkActionOutputDelegate(workflowDelegate, state, event, transition, action))
-				}
+			} else if (args[0]) {
+				def param = new RowkParameter()
+				param.name = name
+				action.addToParameters(param)
+				param.value = RowkValue.create(args[0])
 			}
 		}
 		def propertyMissing(String name, value) {
-			return null
+			addResult(name, name)
+		}
+		def addResult(String name, value) {
+			def result = new RowkResult()
+			result.name = name
+			action.addToResults(result)
+			def var = new RowkVariable()
+			var.name = value
+			result.ref = var
+			workflowDelegate.workflow.addToVariables(var)
 		}
 		
 	}
@@ -207,14 +241,6 @@ class WorkflowBuilder extends DelegateSupport {
 		}
 		
 		def methodMissing(String name, Object args) {
-			def result = new RowkParameter()
-			result.name = name
-			action.addToParameters(result)
-			if (args[0] instanceof Map && args[0].ref) {
-				workflowDelegate.variableLinker.add(result, args[0].ref)
-			} else if (args[0]) {
-				result.value = RowkValue.create(args[0])
-			}
 		}
 		def propertyMissing(String name, value) {
 			return null
@@ -237,15 +263,6 @@ class WorkflowBuilder extends DelegateSupport {
 		}
 		
 		def methodMissing(String name, Object args) {
-			def result = new RowkResult()
-			result.name = name
-			action.addToResults(result)
-			if (args[0] instanceof Map && args[0].to) {
-				def var = new RowkVariable()
-				var.name = args[0].to
-				result.ref = var
-				workflowDelegate.workflow.addToVariables(var)
-			}
 		}
 		def propertyMissing(String name, value) {
 			return action

@@ -15,5 +15,5 @@ class RowkAction {
     static constraints = {
     }
 
-    String toString() {"$svc.$func"}
+    String toString() {"$service.$function"}
 }
