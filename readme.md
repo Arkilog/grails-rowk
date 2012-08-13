@@ -21,6 +21,7 @@ Here a the concepts used in this plugin :
 A code is worth a thousand words :
 
 ```Groovy
+//Workflow definition
 workflow(name :'onlineReporter'){
      //State definition
     start{
@@ -28,12 +29,12 @@ workflow(name :'onlineReporter'){
         selectArticle(to:'edit'){
              //Action definition
                run('rowkService.userInfo'){
-                  //Action parameter definition (using variable)
-                    user(to:'author')
                   //Action result definition
+                    user(to:'author')
                     userEmail(to:'authorEmail')
                }
                run('articleService.update'){
+                  //Action parameter definition (using variable)
                     id(ref:'articleId')
                     user(ref:'author')
                   //Action parameter definition (using constant)
