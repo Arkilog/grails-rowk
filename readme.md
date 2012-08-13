@@ -118,5 +118,5 @@ Please note that the DSL Language is still moving untill the 1.0.0 stable releas
 
 ## Roadmap
 
-Please check the [1.0.0 milestone](yellowsnow/grails-rowk/issues?milestone=1).
+Please check the [1.0.0 milestone](grails-rowk/issues?milestone=1).
  
