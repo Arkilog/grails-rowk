@@ -16,11 +16,7 @@ Here a the concepts used in this plugin :
 * _Event_ : a user or automatic trigger of a Transition
 * _Action_ : a processing task occuring during a Transition
 
-## Roadmap
-
-Please check the [1.0.0 milestone](yellowsnow/grails-rowk/issues?milestone=1).
- 
-## Example
+## Example DSL
 
 A code is worth a thousand words :
 
@@ -119,3 +115,8 @@ workflow(name :'onlineReporter'){
 }
 ```
 Please note that the DSL Language is still moving untill the 1.0.0 stable release.
+
+## Roadmap
+
+Please check the [1.0.0 milestone](yellowsnow/grails-rowk/issues?milestone=1).
+ 
