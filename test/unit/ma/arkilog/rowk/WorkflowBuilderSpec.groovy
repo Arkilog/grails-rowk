@@ -19,24 +19,54 @@ class WorkflowBuilderSpec extends UnitSpec {
           when:
           def DSL = """
 workflow(name :'onlineReporter'){
-	edit{
-		writeArticle(to :'edit'){
+     start{
+          selectArticle(to:'edit'){
                run('rowkService.userInfo'){
                     user(to:'author')
                     userEmail(to:'authorEmail')
                }
-			run('articleService.save'){
+               run('articleService.update'){
                     id(ref:'articleId')
                     user(ref:'author')
                     override true
                     articleVersion
-			}
-		}
-		submitArticle(to:'review')
-		cancel(to:'end')
+               }
+          }
+          createArticle(to:'edit'){
+               run('rowkService.userInfo'){
+                    user(to:'author')
+                    userEmail(to:'authorEmail')
+               }
+               run('articleService.save'){
+                    id(ref:'articleId')
+                    user(ref:'author')
+                    override true
+                    articleVersion
+               }
+          }
+          cancel(to:'end')
+     }
+	edit(type:'andfork'){
+		requestControl(to :'control')
+		requestReview(to:'review')
 	}
-	review {
-		ok(to :'publish'){
+     control {
+          askForRewrite(to :'edit'){
+               run('bossService.angry')
+          }
+          approve(to :'publish'){
+               run('bossService.happy')
+          }
+          autodecide(to :['publish','edit']){
+               route('textService.parseArticle'){
+                    id(ref:'articleId')
+                    version(ref:'articleVersion')
+               }
+          }
+          abort(to:'end')
+     }
+     review {
+          ok(to :'publish'){
                run('rowkService.userInfo'){
                     user(to:'reviewerName')
                     userEmail(to:'reviewerEmail')
@@ -51,6 +81,11 @@ workflow(name :'onlineReporter'){
                     subjectTemplate(to:'publishSubjectTemplate')
                     mailTemplate(to:'publishMailTemplate')
                }
+          }
+          sendComments(to:'edit')
+     }
+	publish(type:'andjoin'){
+		ok(to:'end'){
                run('mailService.sendPublishNotification'){
                     from(ref:'reviewerEmail')
                     destination(ref:'authorEmail')
@@ -58,12 +93,14 @@ workflow(name :'onlineReporter'){
                     body(ref:'publishMailTemplate')
                }
           }
-		keep(to:'review')
-		cancel(to:'end')
-	}
-	publish{
-		ok(to:'end')
-		reset(to:'review')
+		lastMinuteComments(to:'edit'){
+               run('articleService.addComments'){
+                    reviewer(ref:'reviewerName')
+                    reviewerEmail(ref:'reviewerEmail')
+                    id(ref:'articleId')
+                    comments(ref:'lastMinuteComments')
+               }
+          }
 	}
 	end
 }
@@ -72,15 +109,26 @@ workflow(name :'onlineReporter'){
           def builder = new WorkflowBuilder()
           def workflow = builder.workflow(DSL)
           then:
-          workflow.events?.name == ['writeArticle','submitArticle','cancel','ok','keep','cancel','ok','reset']
-          workflow.states.find{it.name=='edit'}.transitions.nextState.name == ['edit', 'review','end']
-          workflow.states.find{it.name=='review'}.transitions.nextState.name == ['publish','review','end']
-          workflow.states.find{it.name=='publish'}.transitions.nextState.name == ['end','review']
-          workflow.states.find{it.name=='edit'}.transitions[0].actions[0].with{
+          workflow.events?.name == [
+          'selectArticle', 'createArticle', 
+          'cancel', 'requestControl', 
+          'requestReview', 'askForRewrite',
+          'approve', 'autodecide', 
+          'abort', 'ok', 'sendComments', 
+          'ok', 'lastMinuteComments'
+          ]
+          println 'go'
+          workflow.states.find{it.name=='edit'}.with {
+               transitions[0].nextState.name == 'control'
+               transitions[1].nextState.name == 'review';
+          }
+          workflow.states.find{it.name=='review'}.transitions.nextState.name == ['publish','edit']
+          workflow.states.find{it.name=='publish'}.transitions.nextState.name == ['end','edit']
+          workflow.states.find{it.name=='start'}.transitions[0].actions[0].with{
                results.name == ["user","userEmail"]
                results.ref.name == ['author','authorEmail']
           }
-          workflow.states.find{it.name=='edit'}.transitions[0].actions[1].with{
+          workflow.states.find{it.name=='start'}.transitions[1].actions[1].with{
                parameters.name == ["id","user","override"]
                parameters[2].val() == true
                results.name == [null]
@@ -89,9 +137,9 @@ workflow(name :'onlineReporter'){
                service == 'articleService'
           }
           workflow.name == "onlineReporter"
-          workflow.variables?.name == ['author', 'authorEmail','articleVersion', 'reviewerName', 'reviewerEmail', 'publishSubjectTemplate', 'publishMailTemplate', 'articleId']
-          workflow.states.name == ["edit","review","publish","end"]
-          workflow.start.name == "edit"
+          workflow.variables?.name == ['author', 'authorEmail', 'articleVersion', 'author', 'authorEmail', 'articleVersion', 'reviewerName', 'reviewerEmail', 'publishSubjectTemplate', 'publishMailTemplate', 'articleId', 'lastMinuteComments']
+          workflow.states.name == ["start","edit","control","review","publish","end"]
+          workflow.start.name == "start"
           !workflow.hasErrors()
 	}
 }

@@ -35,6 +35,7 @@ class WorkflowBuilder extends DelegateSupport {
 		def tgtName
 		def clazz
 		def createMissing
+		def many
 		def add(missing, link){
 			def list = nonLinked[link] ?: []
 			list << missing
@@ -42,7 +43,11 @@ class WorkflowBuilder extends DelegateSupport {
 		}
 		def match(target){
 			nonLinked[target."$tgtName"].each{
-				it."$srcName" = target
+				if (many){
+					it."addTo${srcName.capitalize()}"(target)
+				} else {
+					it."$srcName" = target
+				}
 			}
 		}
 		def matchAll(targets){
@@ -51,11 +56,19 @@ class WorkflowBuilder extends DelegateSupport {
 			}
 			if (createMissing) {
 				nonLinked.findAll{k,v->
-					v.find{!(it."$srcName")}
+					if (many){
+						v.find{!((it."$srcName").find{it."$tgtName" == k})}
+					} else {
+						v.find{!(it."$srcName")}
+					}
 				}.each{k,v->
 					def newObj = createMissing()
 					newObj."$tgtName" = k
-					v*."$srcName" = newObj
+					if (many){
+						v*."addTo${srcName.capitalize()}"(newObj)
+					} else {
+						v*."$srcName" = newObj
+					}
 				}
 			}
 		}
@@ -86,12 +99,29 @@ class WorkflowBuilder extends DelegateSupport {
 		
 		def methodMissing(String name, Object args) {
 			if (name) {
-				def state = new RowkState()
-				state.name = name
-				workflow.addToStates(state)
-				workflow.start = (workflow.start ?: state)
-				if (args?.length ==1){
-					godeeper(args[0], new RowkStateDelegate(this, state))
+				if (args?.length >=1) {
+					def state, closure
+					if (args[0] instanceof Map) {
+						switch(args[0]?.type) {
+							case CASE: "andjoin"
+								state = new RowkAndJoinState()
+							break
+							case CASE: "andfork"
+								state = new RowkAndForkState()
+							break
+							default:
+								state = new RowkState()
+							break
+						}
+						closure = args[1]
+					} else {
+						state = new RowkState()
+						closure = args[0]
+					}
+					state.name = name
+					workflow.addToStates(state)
+					workflow.start = (workflow.start ?: state)
+					godeeper(closure, new RowkStateDelegate(this, state))
 				}
 			} else {
 				throw new MissingMethodException(name, this.class, args as Object[])
@@ -129,15 +159,16 @@ class WorkflowBuilder extends DelegateSupport {
 				def event = new RowkEvent()
 				event.name = name
 				workflowDelegate.workflow.addToEvents(event)
-				def transition = new RowkTransition()
-				state.addToTransitions(transition)
 				if (args[0] instanceof Map) {
-					if (args[0].to) {
-						workflowDelegate.nextStateLinker.add(transition, args[0].to)
+					def transit = {to->
+						def transition = new RowkTransition()
+						state.addToTransitions(transition)
+						workflowDelegate.nextStateLinker.add(transition, to)
+						if (args.length==2){
+							godeeper(args[1], new RowkTransitionDelegate(workflowDelegate, state, event, transition))
+						}
 					}
-				}
-				if (args.length==2){
-					godeeper(args[1], new RowkTransitionDelegate(workflowDelegate, state, event, transition))
+					(args[0].to instanceof List ? args[0].to : [args[0].to]).each(transit)
 				}
 			}
 		}
