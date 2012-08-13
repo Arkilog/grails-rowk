@@ -59,6 +59,7 @@ workflow(name :'onlineReporter'){
           requestControl(to :'control')
           requestReview(to:'review')
      }
+     //State definition
      control {
           askForRewrite(to :'edit'){
                run('bossService.angry')
@@ -66,14 +67,9 @@ workflow(name :'onlineReporter'){
           approve(to :'publish'){
                run('bossService.happy')
           }
-          autodecide(to :['publish','edit']){
-               route('textService.parseArticle'){
-                    id(ref:'articleId')
-                    version(ref:'articleVersion')
-               }
-          }
           abort(to:'end')
      }
+     //State definition
      review {
           ok(to :'publish'){
                run('rowkService.userInfo'){
@@ -112,6 +108,7 @@ workflow(name :'onlineReporter'){
                }
           }
      }
+     //State definition (an end state is mandatory)
      end
 }
 """
@@ -123,8 +120,7 @@ workflow(name :'onlineReporter'){
           'selectArticle', 'createArticle', 
           'cancel', 'requestControl', 
           'requestReview', 'askForRewrite',
-          'approve', 'autodecide', 
-          'abort', 'ok', 'sendComments', 
+          'approve', 'abort', 'ok', 'sendComments', 
           'ok', 'lastMinuteComments'
           ]
           println 'go'

@@ -6,25 +6,24 @@ This is a Grails plugin that allows you to create Workflows using a simplified D
 ## Example
 
 ```Groovy
-//Workflow definition
 workflow(name :'onlineReporter'){
-	//State definition
+     //State definition
     start{
-		//Transition definition (to state 'edit')
+          //Transition definition (to state 'edit')
         selectArticle(to:'edit'){
-        	   //Action definition
+             //Action definition
                run('rowkService.userInfo'){
-	        	   //Action parameter definition (using variable)
+                  //Action parameter definition (using variable)
                     user(to:'author')
-	        	   //Action result definition
+                  //Action result definition
                     userEmail(to:'authorEmail')
                }
                run('articleService.update'){
                     id(ref:'articleId')
                     user(ref:'author')
-	        	   //Action parameter definition (using constant)
+                  //Action parameter definition (using constant)
                     override true
-	        	   //Action result definition (whole result)
+                  //Action result definition (whole result)
                     articleVersion
                }
           }
@@ -42,11 +41,12 @@ workflow(name :'onlineReporter'){
           }
           cancel(to:'end')
      }
-	//State definition (AndFork pattern)
-	edit(type:'andfork'){
-		requestControl(to :'control')
-		requestReview(to:'review')
-	}
+     //State definition (AndFork pattern)
+     edit(type:'andfork'){
+          requestControl(to :'control')
+          requestReview(to:'review')
+     }
+     //State definition
      control {
           askForRewrite(to :'edit'){
                run('bossService.angry')
@@ -54,14 +54,9 @@ workflow(name :'onlineReporter'){
           approve(to :'publish'){
                run('bossService.happy')
           }
-          autodecide(to :['publish','edit']){
-               route('textService.parseArticle'){
-                    id(ref:'articleId')
-                    version(ref:'articleVersion')
-               }
-          }
           abort(to:'end')
      }
+     //State definition
      review {
           ok(to :'publish'){
                run('rowkService.userInfo'){
@@ -81,9 +76,9 @@ workflow(name :'onlineReporter'){
           }
           sendComments(to:'edit')
      }
-	//State definition (AndJoin pattern)
-	publish(type:'andjoin'){
-		ok(to:'end'){
+     //State definition (AndJoin pattern)
+     publish(type:'andjoin'){
+          ok(to:'end'){
                run('mailService.sendPublishNotification'){
                     from(ref:'reviewerEmail')
                     destination(ref:'authorEmail')
@@ -91,7 +86,7 @@ workflow(name :'onlineReporter'){
                     body(ref:'publishMailTemplate')
                }
           }
-		lastMinuteComments(to:'edit'){
+          lastMinuteComments(to:'edit'){
                run('articleService.addComments'){
                     reviewer(ref:'reviewerName')
                     reviewerEmail(ref:'reviewerEmail')
@@ -99,8 +94,9 @@ workflow(name :'onlineReporter'){
                     comments(ref:'lastMinuteComments')
                }
           }
-	}
-	end
+     }
+     //State definition (an end state is mandatory)
+     end
 }
 ```
-Please note that the DSL Language is still moving untill the 1.0.0 stable release
+Please note that the DSL Language is still moving untill the 1.0.0 stable release.
