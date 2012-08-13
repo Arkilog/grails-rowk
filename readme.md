@@ -1,9 +1,28 @@
+# Grails Rowk Plugin
 [![Build Status](https://secure.travis-ci.org/yellowsnow/grails-rowk.png?branch=master)](http://travis-ci.org/yellowsnow/grails-rowk)
 
+## Introduction
 
-This is a Grails plugin that allows you to create Workflows using a simplified DSL
+This is a Grails plugin that allows you to create Workflows using a simple Groovy DSL.
 
+## Concepts
+
+Here a the concepts used in this plugin :
+
+* _Workflow_ : a model of a sequence or network of states allowing different participants to collaborate on one or many business processes.
+* _Process_ : an instance of a workflow activity at a given situation
+* _State_ : a state as in finite state machines representing the current status of a workflow at a given situation.
+* _Transition_ : a move from one Workflow State to another
+* _Event_ : a user or automatic trigger of a Transition
+* _Action_ : a processing task occuring during a Transition
+
+## Roadmap
+
+Please check the [1.0.0 milestone](yellowsnow/grails-rowk/issues?milestone=1).
+ 
 ## Example
+
+A code is worth a thousand words :
 
 ```Groovy
 workflow(name :'onlineReporter'){
