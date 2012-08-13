@@ -1,4 +1,4 @@
-[![Build Status](https://secure.travis-ci.org/yellowsnow/rowk.png?branch=master)](http://travis-ci.org/yellowsnow/rowk)
+[![Build Status](https://secure.travis-ci.org/yellowsnow/grails-rowk.png?branch=master)](http://travis-ci.org/yellowsnow/grails-rowk)
 
 
 This is a Grails plugin that allows you to create Workflows using a simplified DSL
