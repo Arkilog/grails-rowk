@@ -18,17 +18,25 @@ class WorkflowBuilderSpec extends UnitSpec {
 
           when:
           def DSL = """
+//Workflow definition
 workflow(name :'onlineReporter'){
-     start{
-          selectArticle(to:'edit'){
+     //State definition
+    start{
+          //Transition definition (to state 'edit')
+        selectArticle(to:'edit'){
+             //Action definition
                run('rowkService.userInfo'){
+                  //Action parameter definition (using variable)
                     user(to:'author')
+                  //Action result definition
                     userEmail(to:'authorEmail')
                }
                run('articleService.update'){
                     id(ref:'articleId')
                     user(ref:'author')
+                  //Action parameter definition (using constant)
                     override true
+                  //Action result definition (whole result)
                     articleVersion
                }
           }
@@ -46,10 +54,11 @@ workflow(name :'onlineReporter'){
           }
           cancel(to:'end')
      }
-	edit(type:'andfork'){
-		requestControl(to :'control')
-		requestReview(to:'review')
-	}
+     //State definition (AndFork pattern)
+     edit(type:'andfork'){
+          requestControl(to :'control')
+          requestReview(to:'review')
+     }
      control {
           askForRewrite(to :'edit'){
                run('bossService.angry')
@@ -84,8 +93,9 @@ workflow(name :'onlineReporter'){
           }
           sendComments(to:'edit')
      }
-	publish(type:'andjoin'){
-		ok(to:'end'){
+     //State definition (AndJoin pattern)
+     publish(type:'andjoin'){
+          ok(to:'end'){
                run('mailService.sendPublishNotification'){
                     from(ref:'reviewerEmail')
                     destination(ref:'authorEmail')
@@ -93,7 +103,7 @@ workflow(name :'onlineReporter'){
                     body(ref:'publishMailTemplate')
                }
           }
-		lastMinuteComments(to:'edit'){
+          lastMinuteComments(to:'edit'){
                run('articleService.addComments'){
                     reviewer(ref:'reviewerName')
                     reviewerEmail(ref:'reviewerEmail')
@@ -101,8 +111,8 @@ workflow(name :'onlineReporter'){
                     comments(ref:'lastMinuteComments')
                }
           }
-	}
-	end
+     }
+     end
 }
 """
           println DSL
