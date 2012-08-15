@@ -1,0 +1,48 @@
+<plugin name='rowk' version='1.0.0-ALPHA' grailsVersion='2.1 &gt; *'>
+  <author>Your name</author>
+  <title>Rowk Plugin</title>
+  <description>Brief summary/description of the plugin.
+</description>
+  <documentation>http://grails.org/plugin/rowk</documentation>
+  <type>RowkGrailsPlugin</type>
+  <resources>
+    <resource>ma.arkilog.rowk.RowkAction</resource>
+    <resource>ma.arkilog.rowk.RowkActivity</resource>
+    <resource>ma.arkilog.rowk.RowkAndForkState</resource>
+    <resource>ma.arkilog.rowk.RowkAndJoinState</resource>
+    <resource>ma.arkilog.rowk.RowkContext</resource>
+    <resource>ma.arkilog.rowk.RowkEvent</resource>
+    <resource>ma.arkilog.rowk.RowkOrJoinState</resource>
+    <resource>ma.arkilog.rowk.RowkParameter</resource>
+    <resource>ma.arkilog.rowk.RowkParticipant</resource>
+    <resource>ma.arkilog.rowk.RowkProcess</resource>
+    <resource>ma.arkilog.rowk.RowkResult</resource>
+    <resource>ma.arkilog.rowk.RowkState</resource>
+    <resource>ma.arkilog.rowk.RowkTransition</resource>
+    <resource>ma.arkilog.rowk.RowkValue</resource>
+    <resource>ma.arkilog.rowk.RowkVariable</resource>
+    <resource>ma.arkilog.rowk.RowkWorkflow</resource>
+    <resource>ma.arkilog.rowk.types.RowkBigDecimalValue</resource>
+    <resource>ma.arkilog.rowk.types.RowkBooleanValue</resource>
+    <resource>ma.arkilog.rowk.types.RowkDateValue</resource>
+    <resource>ma.arkilog.rowk.types.RowkDomainValue</resource>
+    <resource>ma.arkilog.rowk.types.RowkEntryValue</resource>
+    <resource>ma.arkilog.rowk.types.RowkFloatValue</resource>
+    <resource>ma.arkilog.rowk.types.RowkIntegerValue</resource>
+    <resource>ma.arkilog.rowk.types.RowkListValue</resource>
+    <resource>ma.arkilog.rowk.types.RowkLongValue</resource>
+    <resource>ma.arkilog.rowk.types.RowkMapValue</resource>
+    <resource>ma.arkilog.rowk.types.RowkShortValue</resource>
+    <resource>ma.arkilog.rowk.types.RowkStringValue</resource>
+    <resource>ma.arkilog.rowk.WorkflowBuilder</resource>
+  </resources>
+  <repositories>
+    <repository name='grailsCentral' url='http://grails.org/plugins' />
+    <repository name='http://repo.grails.org/grails/core' url='http://repo.grails.org/grails/core/' />
+    <repository name='mavenCentral' url='http://repo1.maven.org/maven2/' />
+  </repositories>
+  <dependencies />
+  <plugins />
+  <runtimePluginRequirements />
+  <behavior />
+</plugin>
