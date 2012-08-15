@@ -1,7 +1,8 @@
 <plugin name='rowk' version='1.0.0-ALPHA' grailsVersion='2.1 &gt; *'>
-  <author>Your name</author>
+  <author>Arkilog</author>
+  <authorEmail>contact@arkilog.ma</authorEmail>
   <title>Rowk Plugin</title>
-  <description>Brief summary/description of the plugin.
+  <description>This plugin allows you to create Workflows using a simple Groovy DSL.
 </description>
   <documentation>http://grails.org/plugin/rowk</documentation>
   <type>RowkGrailsPlugin</type>
