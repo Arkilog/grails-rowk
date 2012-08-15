@@ -33,10 +33,10 @@ This plugin allows you to create Workflows using a simple Groovy DSL.
 //    def developers = [ [ name: "Joe Bloggs", email: "joe@bloggs.net" ]]
 
     // Location of the plugin's issue tracker.
-    def issueManagement = [ system: "GitHub", url: "https://github.com/yellowsnow/grails-rowk/issues" ]
+    def issueManagement = [ system: "GitHub", url: "https://github.com/Arkilog/grails-rowk/issues" ]
 
     // Online location of the plugin's browseable source code.
-    def scm = [ url: "https://github.com/yellowsnow/grails-rowk" ]
+    def scm = [ url: "https://github.com/Arkilog/grails-rowk" ]
 
     def doWithWebDescriptor = { xml ->
         // TODO Implement additions to web.xml (optional), this event occurs before
