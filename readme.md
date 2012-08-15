@@ -1,5 +1,5 @@
 # Grails Rowk Plugin
-[![Build Status](https://secure.travis-ci.org/yellowsnow/grails-rowk.png?branch=master)](http://travis-ci.org/yellowsnow/grails-rowk)
+[![Build Status](https://secure.travis-ci.org/Arkilog/grails-rowk.png?branch=master)](http://travis-ci.org/Arkilog/grails-rowk)
 
 ## Introduction
 
