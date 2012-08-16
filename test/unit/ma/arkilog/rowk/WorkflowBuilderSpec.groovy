@@ -15,6 +15,10 @@ class WorkflowBuilderSpec extends UnitSpec {
           mockDomain(RowkState)
           mockDomain(RowkTransition)
           mockDomain(RowkWorkflow)
+          mockDomain(RowkTarget)
+          mockDomain(RowkAssignee)
+          mockDomain(RowkFyiTarget)
+          mockDomain(RowkFifoTarget)
 
           when:
           def DSL = """
@@ -23,21 +27,31 @@ workflow(name :'onlineReporter'){
      //State definition
     start{
           //Transition definition (to state 'edit')
-        selectArticle(to:'edit'){
+          updateArticle(to:'edit'){
              //Action definition
                run('rowkService.userInfo'){
-                  //Action parameter definition (using variable)
-                    user(to:'author')
                   //Action result definition
+                    user(to:'author')
                     userEmail(to:'authorEmail')
                }
                run('articleService.update'){
+                  //Action parameter definition (using variable)
                     id(ref:'articleId')
                     user(ref:'author')
                   //Action parameter definition (using constant)
                     override true
                   //Action result definition (whole result)
                     articleVersion
+               }
+               assign(type:'fifo'){
+                    user(ref:'oldAuthor')
+                    //group('johndoesworldwide')
+                    //role('authors')
+               }
+               fyi{
+                    //user(ref:'oldAuthor')
+                    //group('johndoesworldwide')
+                    role('authors')
                }
           }
           createArticle(to:'edit'){
@@ -51,6 +65,16 @@ workflow(name :'onlineReporter'){
                     override true
                     articleVersion
                }
+               assign(type:'fifo'){
+                    user('johndoe')
+                    group('johndoesworldwide')
+                    role('authors')
+               }
+               fyi{
+                    user(ref:'oldAuthor')
+                    group('johndoesworldwide')
+                    role('authors')
+               }
           }
           cancel(to:'end')
      }
@@ -63,9 +87,19 @@ workflow(name :'onlineReporter'){
      control {
           askForRewrite(to :'edit'){
                run('bossService.angry')
+               assign(type:'vote',minpercent:100){
+                    user('bigboss')
+                    group('masterauthors')
+                    role('experiencedauthors')
+               }
           }
           approve(to :'publish'){
                run('bossService.happy')
+               assign(type:'vote',minpercent:100){
+                    user('bigboss')
+                    group('masterauthors')
+                    role('experiencedauthors')
+               }
           }
           abort(to:'end')
      }
@@ -85,6 +119,11 @@ workflow(name :'onlineReporter'){
                     version(ref:'articleVersion')
                     subjectTemplate(to:'publishSubjectTemplate')
                     mailTemplate(to:'publishMailTemplate')
+               }
+               assign(type:'serial'){
+                    user('teamleader')
+                    user('manager')
+                    user('bigboss')
                }
           }
           sendComments(to:'edit')
@@ -117,17 +156,20 @@ workflow(name :'onlineReporter'){
           def workflow = builder.workflow(DSL)
           then:
           workflow.events?.name == [
-          'selectArticle', 'createArticle', 
+          'updateArticle', 'createArticle', 
           'cancel', 'requestControl', 
           'requestReview', 'askForRewrite',
           'approve', 'abort', 'ok', 'sendComments', 
           'ok', 'lastMinuteComments'
           ]
-          println 'go'
           workflow.states.find{it.name=='edit'}.with {
                transitions[0].nextState.name == 'control'
                transitions[1].nextState.name == 'review';
           }
+          def startT1 = workflow.states.find{it.name=='start'}.transitions[1]
+          startT1.assignment.assignees*.val() == ['johndoe','johndoesworldwide','authors']
+          startT1.fyi.assignees*.val() == [null,'johndoesworldwide','authors']
+          
           workflow.states.find{it.name=='review'}.transitions.nextState.name == ['publish','edit']
           workflow.states.find{it.name=='publish'}.transitions.nextState.name == ['end','edit']
           workflow.states.find{it.name=='start'}.transitions[0].actions[0].with{
@@ -137,13 +179,14 @@ workflow(name :'onlineReporter'){
           workflow.states.find{it.name=='start'}.transitions[1].actions[1].with{
                parameters.name == ["id","user","override"]
                parameters[2].val() == true
+               parameters[2].val() == true
                results.name == [null]
                results.ref.name == ["articleVersion"]
                function == 'save'
                service == 'articleService'
           }
           workflow.name == "onlineReporter"
-          workflow.variables?.name == ['author', 'authorEmail', 'articleVersion', 'author', 'authorEmail', 'articleVersion', 'reviewerName', 'reviewerEmail', 'publishSubjectTemplate', 'publishMailTemplate', 'articleId', 'lastMinuteComments']
+          workflow.variables?.name == ['author', 'authorEmail', 'articleId', 'articleVersion', 'oldAuthor', 'reviewerName', 'reviewerEmail', 'publishSubjectTemplate', 'publishMailTemplate', 'lastMinuteComments']
           workflow.states.name == ["start","edit","control","review","publish","end"]
           workflow.start.name == "start"
           !workflow.hasErrors()
