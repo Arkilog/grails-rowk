@@ -7,6 +7,8 @@ class RowkVariable {
 	RowkVariable ref
 	
 	RowkValue value
+
+	String source
 	
 	static belongsTo = [workflow : RowkWorkflow]
 

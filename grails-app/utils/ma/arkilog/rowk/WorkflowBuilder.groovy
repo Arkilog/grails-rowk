@@ -82,7 +82,12 @@ class WorkflowDelegate extends DelegateSupport {
 			if (!var){
 				var = new RowkVariable()
 				workflow.addToVariables(var)
-				var.name = name
+				if (name?.indexOf('.')>=0){
+					var.source = name.split('\\.')[0]
+					var.name = name.split('\\.')[1]
+				} else {
+					var.name = name
+				}
 			}
 			var
 		})

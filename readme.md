@@ -28,15 +28,10 @@ workflow(name :'onlineReporter'){
           //Transition definition (to state 'dispatch')
           updateArticle(to:'dispatch'){
              //Action definition
-               run('rowkService.userInfo'){
-                  //Action result definition
-                    user(to:'author')
-                    userEmail(to:'authorEmail')
-               }
                run('articleService.update'){
                   //Action parameter definition (using variable)
-                    id(ref:'articleId')
-                    user(ref:'author')
+                    id(ref:'params.id')
+                    user(ref:'session.user')
                   //Action parameter definition (using constant)
                     override true
                   //Action result definition (whole result)
@@ -50,13 +45,9 @@ workflow(name :'onlineReporter'){
                }
           }
           createArticle(to:'dispatch'){
-               run('rowkService.userInfo'){
-                    user(to:'author')
-                    userEmail(to:'authorEmail')
-               }
                run('articleService.save'){
-                    id(ref:'articleId')
-                    user(ref:'author')
+                    id(ref:'params.id')
+                    user(ref:'session.user')
                     override true
                     articleVersion
                }
@@ -98,7 +89,7 @@ workflow(name :'onlineReporter'){
      }
      //State definition
      control {
-          askForRewrite(to :'dispatch'){
+          askForRewrite(to :'start'){
                run('bossService.angry')
                assign(type:'vote',minpercent:100){
                     user('bigboss')
@@ -119,10 +110,6 @@ workflow(name :'onlineReporter'){
      //State definition
      review {
           ok(to :'publish'){
-               run('rowkService.userInfo'){
-                    user(to:'reviewerName')
-                    userEmail(to:'reviewerEmail')
-               }
                run('articleService.preparePublishMailTemplate'){
                     user(ref:'author')
                     mail(ref:'authorEmail')

@@ -29,15 +29,10 @@ workflow(name :'onlineReporter'){
           //Transition definition (to state 'dispatch')
           updateArticle(to:'dispatch'){
              //Action definition
-               run('rowkService.userInfo'){
-                  //Action result definition
-                    user(to:'author')
-                    userEmail(to:'authorEmail')
-               }
                run('articleService.update'){
                   //Action parameter definition (using variable)
-                    id(ref:'articleId')
-                    user(ref:'author')
+                    id(ref:'params.id')
+                    user(ref:'session.user')
                   //Action parameter definition (using constant)
                     override true
                   //Action result definition (whole result)
@@ -51,13 +46,9 @@ workflow(name :'onlineReporter'){
                }
           }
           createArticle(to:'dispatch'){
-               run('rowkService.userInfo'){
-                    user(to:'author')
-                    userEmail(to:'authorEmail')
-               }
                run('articleService.save'){
-                    id(ref:'articleId')
-                    user(ref:'author')
+                    id(ref:'params.id')
+                    user(ref:'session.user')
                     override true
                     articleVersion
                }
@@ -99,7 +90,7 @@ workflow(name :'onlineReporter'){
      }
      //State definition
      control {
-          askForRewrite(to :'dispatch'){
+          askForRewrite(to :'start'){
                run('bossService.angry')
                assign(type:'vote',minpercent:100){
                     user('bigboss')
@@ -120,10 +111,6 @@ workflow(name :'onlineReporter'){
      //State definition
      review {
           ok(to :'publish'){
-               run('rowkService.userInfo'){
-                    user(to:'reviewerName')
-                    userEmail(to:'reviewerEmail')
-               }
                run('articleService.preparePublishMailTemplate'){
                     user(ref:'author')
                     mail(ref:'authorEmail')
@@ -188,11 +175,7 @@ workflow(name :'onlineReporter'){
           
           workflow.states.find{it.name=='review'}.transitions.nextState.name == ['publish','dispatch']
           workflow.states.find{it.name=='publish'}.transitions.nextState.name == ['end','dispatch']
-          workflow.states.find{it.name=='start'}.transitions[0].actions[0].with{
-               results.name == ["user","userEmail"]
-               results.ref.name == ['author','authorEmail']
-          }
-          workflow.states.find{it.name=='start'}.transitions[1].actions[1].with{
+          workflow.states.find{it.name=='start'}.transitions[1].actions[0].with{
                parameters.name == ["id","user","override"]
                parameters[2].val() == true
                parameters[2].val() == true
@@ -202,7 +185,11 @@ workflow(name :'onlineReporter'){
                service == 'articleService'
           }
           workflow.name == "onlineReporter"
-          workflow.variables?.name == ['author', 'authorEmail', 'articleId', 'articleVersion', 'oldAuthor', 'reviewerName', 'reviewerEmail', 'publishSubjectTemplate', 'publishMailTemplate', 'lastMinuteComments']
+          workflow.variables?.name == ['id', 'user', 'articleVersion', 'oldAuthor', 'author',
+           'authorEmail', 'reviewerName', 'reviewerEmail', 'articleId', 
+           'publishSubjectTemplate', 'publishMailTemplate', 'lastMinuteComments']
+          workflow.variables?.find{it.name=='user'}.source == 'session'
+          workflow.variables?.find{it.name=='id'}.source == 'params'
           workflow.states.name == ["start","dispatch","control","review","publish","end"]
           workflow.start.name == "start"
           !workflow.hasErrors()
