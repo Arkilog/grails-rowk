@@ -3,7 +3,13 @@
 
 ## Introduction
 
+### In one sentence
+
 This is a Grails plugin that allows you to create Workflows using a simple Groovy DSL.
+
+### Status
+
+This is a work in progress, a the time of writing, only the domain model is assembled from the Groovy DSL.
 
 ## Concepts
 
