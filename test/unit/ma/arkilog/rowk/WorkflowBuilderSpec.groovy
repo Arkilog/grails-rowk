@@ -26,8 +26,8 @@ class WorkflowBuilderSpec extends UnitSpec {
 workflow(name :'onlineReporter'){
      //State definition
     start{
-          //Transition definition (to state 'edit')
-          updateArticle(to:'edit'){
+          //Transition definition (to state 'dispatch')
+          updateArticle(to:'dispatch'){
              //Action definition
                run('rowkService.userInfo'){
                   //Action result definition
@@ -43,18 +43,14 @@ workflow(name :'onlineReporter'){
                   //Action result definition (whole result)
                     articleVersion
                }
-               assign(type:'fifo'){
-                    user(ref:'oldAuthor')
-                    //group('johndoesworldwide')
-                    //role('authors')
-               }
+               //No need to assign for a system state
+
+               //Optional 'For your information' list (notification list)
                fyi{
-                    //user(ref:'oldAuthor')
-                    //group('johndoesworldwide')
                     role('authors')
                }
           }
-          createArticle(to:'edit'){
+          createArticle(to:'dispatch'){
                run('rowkService.userInfo'){
                     user(to:'author')
                     userEmail(to:'authorEmail')
@@ -65,6 +61,30 @@ workflow(name :'onlineReporter'){
                     override true
                     articleVersion
                }
+               //No need to assign for a system state
+
+               //As mentionnted FYI can be used but not mandatory
+               fyi{
+                    role('authors')
+               }
+          }
+          cancel(to:'end')
+     }
+     //State definition (AndFork pattern) 
+     //it's a system state no need to specify assignmments
+     dispatch(type:'andfork'){
+          requestControl(to :'control'){
+               //'First in first out' assignment, the first participant that takes 
+               // control of the following state will make the process progress
+               //Mandatory here
+               assign(type:'fifo'){
+                    user(ref:'oldAuthor')
+                    //group('johndoesworldwide')
+                    //role('authors')
+               }
+
+          }
+          requestReview(to:'review'){
                assign(type:'fifo'){
                     user('johndoe')
                     group('johndoesworldwide')
@@ -76,16 +96,10 @@ workflow(name :'onlineReporter'){
                     role('authors')
                }
           }
-          cancel(to:'end')
-     }
-     //State definition (AndFork pattern)
-     edit(type:'andfork'){
-          requestControl(to :'control')
-          requestReview(to:'review')
      }
      //State definition
      control {
-          askForRewrite(to :'edit'){
+          askForRewrite(to :'dispatch'){
                run('bossService.angry')
                assign(type:'vote',minpercent:100){
                     user('bigboss')
@@ -126,7 +140,7 @@ workflow(name :'onlineReporter'){
                     user('bigboss')
                }
           }
-          sendComments(to:'edit')
+          sendComments(to:'dispatch')
      }
      //State definition (AndJoin pattern)
      publish(type:'andjoin'){
@@ -137,14 +151,16 @@ workflow(name :'onlineReporter'){
                     subject(ref:'publishSubjectTemplate')
                     body(ref:'publishMailTemplate')
                }
+               //No need to assign the end of the process
           }
-          lastMinuteComments(to:'edit'){
+          lastMinuteComments(to:'dispatch'){
                run('articleService.addComments'){
                     reviewer(ref:'reviewerName')
                     reviewerEmail(ref:'reviewerEmail')
                     id(ref:'articleId')
                     comments(ref:'lastMinuteComments')
                }
+               //No need to assign for a system state
           }
      }
      //State definition (an end state is mandatory)
@@ -162,16 +178,16 @@ workflow(name :'onlineReporter'){
           'approve', 'abort', 'ok', 'sendComments', 
           'ok', 'lastMinuteComments'
           ]
-          workflow.states.find{it.name=='edit'}.with {
+          workflow.states.find{it.name=='dispatch'}.with {
                transitions[0].nextState.name == 'control'
                transitions[1].nextState.name == 'review';
           }
-          def startT1 = workflow.states.find{it.name=='start'}.transitions[1]
+          def startT1 = workflow.states.find{it.name=='dispatch'}.transitions[1]
           startT1.assignment.assignees*.val() == ['johndoe','johndoesworldwide','authors']
           startT1.fyi.assignees*.val() == [null,'johndoesworldwide','authors']
           
-          workflow.states.find{it.name=='review'}.transitions.nextState.name == ['publish','edit']
-          workflow.states.find{it.name=='publish'}.transitions.nextState.name == ['end','edit']
+          workflow.states.find{it.name=='review'}.transitions.nextState.name == ['publish','dispatch']
+          workflow.states.find{it.name=='publish'}.transitions.nextState.name == ['end','dispatch']
           workflow.states.find{it.name=='start'}.transitions[0].actions[0].with{
                results.name == ["user","userEmail"]
                results.ref.name == ['author','authorEmail']
@@ -187,7 +203,7 @@ workflow(name :'onlineReporter'){
           }
           workflow.name == "onlineReporter"
           workflow.variables?.name == ['author', 'authorEmail', 'articleId', 'articleVersion', 'oldAuthor', 'reviewerName', 'reviewerEmail', 'publishSubjectTemplate', 'publishMailTemplate', 'lastMinuteComments']
-          workflow.states.name == ["start","edit","control","review","publish","end"]
+          workflow.states.name == ["start","dispatch","control","review","publish","end"]
           workflow.start.name == "start"
           !workflow.hasErrors()
 	}
