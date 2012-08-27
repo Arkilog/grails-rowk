@@ -1,7 +1,7 @@
-grails.project.class.dir = "target/classes"
-grails.project.test.class.dir = "target/test-classes"
+def ramDir = System.getenv()["RAMDIR"] ? "${System.getenv()["RAMDIR"]}/grailsapps/${appName}/" : ""
+grails.project.class.dir = "${ramDir}target/classes"
+grails.project.test.class.dir = "${ramDir}target/test-classes"
 grails.project.test.reports.dir = "target/test-reports"
-
 grails.project.dependency.resolution = {
     // inherit Grails' default dependencies
     inherits("global") {
@@ -31,7 +31,8 @@ grails.project.dependency.resolution = {
             export = false
             excludes 'groovy-all'
         }
-        build(":tomcat:$grailsVersion",
+        build(":hibernate:$grailsVersion",
+              ":tomcat:$grailsVersion",
               ":release:2.0.3",
               ":rest-client-builder:1.0.2") {
             export = false
