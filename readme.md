@@ -48,6 +48,9 @@ workflow(name :'onlineReporter'){
                   //Action result definition (whole result)
                     articleVersion
                }
+               fyi{
+                    role('elderManagement')
+               }
           }
           createArticle(to:'dispatch'){
                run('articleService.save'){
@@ -63,7 +66,11 @@ workflow(name :'onlineReporter'){
      //it's a system state no need to specify assignmentmments
      dispatch(type:'andfork'){
           requestControl(to :'control')
-          requestReview(to:'review')
+          requestReview(to:'review'){
+               fyi{
+                    role('elderManagement')
+               }
+          }
      }
      //State definition
      control {

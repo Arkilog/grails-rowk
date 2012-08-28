@@ -162,16 +162,10 @@ class RowkStateDelegate extends DelegateSupport {
 	}
 	
 	void methodMissing(String name, Object args) {
-		if (name == 'assignment' || name=='fyi') {
-			if (name=="assignment"){
-				def target = RowkTarget.create(args[0]?.type)
-				state.assignment = target
-				godeeper(args[-1], new RowkTargetDelegate(workflowDelegate, state, event, transition, target))
-			} else if (name=="fyi" && args.length>=1){
-				def target = RowkTarget.create("fyi")
-				state.fyi = target
-				godeeper(args[-1], new RowkTargetDelegate(workflowDelegate, state, event, transition, target))
-			}
+		if (name=="assignment"){
+			def target = RowkTarget.create(args[0]?.type)
+			state.assignment = target
+			godeeper(args[-1], new RowkTargetDelegate(workflowDelegate, state, event, transition, target))
 		} else if (name && args.length>=1) {
 			def event = new RowkEvent()
 			event.name = name
@@ -221,6 +215,10 @@ class RowkTransitionDelegate extends DelegateSupport {
 			if (args.length==2){
 				godeeper(args[1], new RowkActionDelegate(workflowDelegate, state, event, transition, action))
 			}
+		} else if (name=="fyi" && args.length>=1){
+			def target = RowkTarget.create("fyi")
+			transition.fyi = target
+			godeeper(args[-1], new RowkTargetDelegate(workflowDelegate, state, event, transition, target))
 		}
 	}
 	def propertyMissing(String name, value) {

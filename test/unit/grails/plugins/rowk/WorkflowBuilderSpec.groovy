@@ -31,10 +31,10 @@ class WorkflowBuilderSpec extends UnitSpec {
           'approve', 'abort', 'ok', 'sendComments', 
           'go', 'ok', 'lastMinuteComments'
           ]
-          workflow.states.find{it.name=='dispatch'}.with {
-               transitions[0].nextState.name == 'control'
-               transitions[1].nextState.name == 'review';
-          }
+          def dispatch = workflow.states.find{it.name=='dispatch'}
+          dispatch.transitions[0].nextState.name == 'control'
+          dispatch.transitions[1].nextState.name == 'review'
+          dispatch.transitions[1].fyi.assignees*.val() == ['elderManagement']
           def control = workflow.states.find{it.name=='control'}
           println control.'class'
           control.assignment.assignees*.val() == ['bigboss', 'masterauthors', 'experiencedauthors']

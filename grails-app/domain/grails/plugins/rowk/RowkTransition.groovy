@@ -4,6 +4,8 @@ class RowkTransition {
 
 	RowkState nextState
 
+    RowkFyiTarget fyi
+
 	List actions
 
 	static belongsTo = [state : RowkState]
@@ -16,6 +18,7 @@ class RowkTransition {
     }
 
     static constraints = {
+        fyi(nullable:true)
     }
 
     String toString() {"${state?.name} >> ${nextState?.name}"}
