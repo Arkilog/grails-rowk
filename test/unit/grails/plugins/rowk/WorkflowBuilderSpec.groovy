@@ -3,7 +3,7 @@ package grails.plugins.rowk
 import grails.plugin.spock.UnitSpec
 
 class WorkflowBuilderSpec extends UnitSpec {
-    def "workflow dsl"() {
+    def "Workflow complete dsl manual validation"() {
           setup:
           mockDomain(RowkAction)
           mockDomain(RowkActivity)
@@ -36,7 +36,6 @@ class WorkflowBuilderSpec extends UnitSpec {
           dispatch.transitions[1].nextState.name == 'review'
           dispatch.transitions[1].fyi.assignees*.val() == ['elderManagement']
           def control = workflow.states.find{it.name=='control'}
-          println control.'class'
           control.assignment.assignees*.val() == ['bigboss', 'masterauthors', 'experiencedauthors']
           
           workflow.states.find{it.name=='review'}.transitions.nextState.name == ['syncadvices','start']
@@ -61,7 +60,7 @@ class WorkflowBuilderSpec extends UnitSpec {
           !workflow.hasErrors()
           workflow.validate(failOnError:true)
 	}
-    def "workflow complete example"() {
+    def "Workflow complete dsl validation"() {
           setup:
           mockDomain(RowkAction)
           mockDomain(RowkActivity)
@@ -84,17 +83,14 @@ class WorkflowBuilderSpec extends UnitSpec {
           def builder = new WorkflowBuilder()
           def workflow = builder.workflow(dsl)
           then:
-          workflow.validate()
-          if (workflow.hasErrors()){
-            println errors(workflow)
-          }
+          validate(workflow,!valid)
           workflow.hasErrors() == !valid
           where:
           dsl | valid
           SampleDSL.ONLINE_REPORTER | true
 
      }
-    def "workflow manual creation"() {
+    def "Workflow manual creation"() {
           setup:
           mockDomain(RowkAction)
           mockDomain(RowkActivity)
@@ -124,7 +120,7 @@ class WorkflowBuilderSpec extends UnitSpec {
           !workflow.hasErrors()
      }
 
-     def "basic workflow constraints"() {
+     def "Basic workflow constraints"() {
           setup:
           mockDomain(RowkAction)
           mockDomain(RowkActivity)
@@ -146,12 +142,10 @@ class WorkflowBuilderSpec extends UnitSpec {
           def workflow = builder.workflow(dsl)
 
           then:
-          println "+" * 50
-          validate(workflow) == wValid
-          validate(workflow.states) == sValid
-          validate(workflow.states.transitions) == tValid
+          validate(workflow,wValid) == wValid
+          validate(workflow.states,sValid) == sValid
+          validate(workflow.states.transitions,tValid) == tValid
           workflow.states.find{it.name=="end"}
-          println "+" * 50
           where:
 
           dsl | wValid | sValid | tValid
@@ -210,9 +204,9 @@ class WorkflowBuilderSpec extends UnitSpec {
           }
           
      }
-     static validate(it){
+     static validate(it,expectedError=true){
           boolean result = _validate(it)
-          if (!result) {
+          if (!result && expectedError) {
                println errors(it)
           }
           result
