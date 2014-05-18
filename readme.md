@@ -1,3 +1,4 @@
+[![Stories in Ready](https://badge.waffle.io/arkilog/grails-rowk.png?label=ready&title=Ready)](https://waffle.io/arkilog/grails-rowk)
 # Grails Rowk Plugin
 [![Build Status](https://secure.travis-ci.org/Arkilog/grails-rowk.png?branch=master)](http://travis-ci.org/Arkilog/grails-rowk)
 
